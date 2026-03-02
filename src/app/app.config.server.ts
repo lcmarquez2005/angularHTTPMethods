@@ -1,10 +1,10 @@
-import { mergeApplicationConfig, ApplicationConfig } from '@angular/core';
-import { provideServerRendering } from '@angular/platform-server';
+import { ApplicationConfig } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { provideClientHydration } from '@angular/platform-browser';
 
-import { appConfig } from './app.config';
-
-const serverConfig: ApplicationConfig = {
-  providers: [provideServerRendering()],
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(), // <-- Esto es lo que permite hacer GET y POST
+    provideClientHydration()
+  ],
 };
-
-export const config = mergeApplicationConfig(appConfig, serverConfig);
