@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { CrudService, Item } from '../services/crud.service';
 
 // Definimos cómo es una Prenda
 interface Prenda {
@@ -15,91 +15,271 @@ interface Prenda {
 
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   template: `
     <div style="padding: 20px; font-family: sans-serif; background-color: #121212; color: white; min-height: 100vh;">
-      <h1>Registro de Prendas</h1>
+      <h1>Registro de Prendas - CRUD</h1>
 
-      <div style="background: #1e1e1e; padding: 20px; border-radius: 8px; margin-bottom: 20px; max-width: 400px; display: flex; flex-direction: column; gap: 10px;">
-        <h3>Nueva Prenda</h3>
-        <input [(ngModel)]="nuevaPrenda.idPrenda" placeholder="Id de Prenda (Código)">
-        <input [(ngModel)]="nuevaPrenda.marca" placeholder="Marca">
-        <input [(ngModel)]="nuevaPrenda.tipo" placeholder="Tipo de prenda">
-        <input [(ngModel)]="nuevaPrenda.talla" placeholder="Talla">
-        <input [(ngModel)]="nuevaPrenda.color" placeholder="Color">
-        
-        <button (click)="crearPrenda()" style="padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold;">
-          CREAR PRENDA (POST)
-        </button>
-      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <!-- CREATE Section -->
+        <div style="background: #1e1e1e; padding: 20px; border-radius: 8px;">
+          <h3>Crear Nueva Prenda (POST)</h3>
+          <form [formGroup]="createForm" style="display: flex; flex-direction: column; gap: 10px;">
+            <input 
+              formControlName="idPrenda" 
+              placeholder="Id de Prenda (Código)"
+              style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;"
+            />
+            <input 
+              formControlName="marca" 
+              placeholder="Marca"
+              style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;"
+            />
+            <input 
+              formControlName="tipo_prenda" 
+              placeholder="Tipo de prenda"
+              style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;"
+            />
+            <input 
+              formControlName="talla" 
+              placeholder="Talla"
+              style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;"
+            />
+            <input 
+              formControlName="color" 
+              placeholder="Color"
+              style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;"
+            />
+            <button 
+              (click)="onCreateItem()" 
+              [disabled]="createForm.invalid"
+              style="padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold;"
+            >
+              CREAR PRENDA (POST)
+            </button>
+            <p *ngIf="createdItem" style="color: #4CAF50;">✓ Prenda creada: {{ createdItem.idPrenda }}</p>
+          </form>
+        </div>
 
-      <hr>
-
-      <div style="margin-top: 20px;">
-        <h3>Inventario en API</h3>
-        <div *ngIf="prendas.length === 0">No hay prendas registradas.</div>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
-          <div *ngFor="let p of prendas" style="background: #2a2a2a; padding: 15px; border-radius: 5px; border-left: 4px solid #4CAF50;">
-            <p><strong>ID:</strong> {{ p.idPrenda }}</p>
-            <p><strong>Marca:</strong> {{ p.marca }}</p>
-            <p><strong>Tipo:</strong> {{ p.tipo }}</p>
-            <p><strong>Talla:</strong> {{ p.talla }}</p>
-            <p><strong>Color:</strong> {{ p.color }}</p>
-          </div>
+        <!-- UPDATE Section -->
+        <div style="background: #1e1e1e; padding: 20px; border-radius: 8px;">
+          <h3>Actualizar Prenda (PUT)</h3>
+          <form [formGroup]="updateForm" style="display: flex; flex-direction: column; gap: 10px;">
+            <input 
+              formControlName="id" 
+              placeholder="ID de la Prenda a Actualizar (MongoDB ID)"
+              style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;"
+            />
+            <input 
+              formControlName="idPrenda" 
+              placeholder="Id de Prenda"
+              style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;"
+            />
+            <input 
+              formControlName="marca" 
+              placeholder="Marca"
+              style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;"
+            />
+            <input 
+              formControlName="tipo_prenda" 
+              placeholder="Tipo de prenda"
+              style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;"
+            />
+            <input 
+              formControlName="talla" 
+              placeholder="Talla"
+              style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;"
+            />
+            <input 
+              formControlName="color" 
+              placeholder="Color"
+              style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;"
+            />
+            <button 
+              (click)="onUpdateItem()" 
+              [disabled]="updateForm.invalid"
+              style="padding: 10px; background: #FF9800; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold;"
+            >
+              ACTUALIZAR PRENDA (PUT)
+            </button>
+            <p *ngIf="updatedItem" style="color: #FF9800;">✓ Actualizada: {{ updatedItem.idPrenda }}</p>
+          </form>
         </div>
       </div>
-    </div>
 
-    <style>
-      input { padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; }
-    </style>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <!-- DELETE Section -->
+        <div style="background: #1e1e1e; padding: 20px; border-radius: 8px;">
+          <h3>Eliminar Prenda (DELETE)</h3>
+          <form [formGroup]="deleteForm" style="display: flex; flex-direction: column; gap: 10px;">
+            <input 
+              formControlName="id" 
+              placeholder="ID de la Prenda a Eliminar (MongoDB ID)"
+              style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;"
+            />
+            <button 
+              (click)="onDeleteItem()" 
+              [disabled]="deleteForm.invalid"
+              style="padding: 10px; background: #f44336; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold;"
+            >
+              ELIMINAR PRENDA (DELETE)
+            </button>
+            <p *ngIf="deletedId" style="color: #f44336;">✓ Prenda eliminada: {{ deletedId }}</p>
+          </form>
+        </div>
+
+        <!-- GET Items -->
+        <div style="background: #1e1e1e; padding: 20px; border-radius: 8px;">
+          <h3>Cargar Prendas (GET)</h3>
+          <button 
+            (click)="onGetItems()"
+            style="padding: 10px; background: #2196F3; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%;"
+          >
+            CARGAR PRENDAS (GET)
+          </button>
+          <div *ngIf="items.length > 0" style="margin-top: 15px;">
+            <h4>{{ items.length }} Prendas Disponibles:</h4>
+            <div style="max-height: 400px; overflow-y: auto;">
+              <div *ngFor="let item of items" style="background: #2a2a2a; padding: 10px; margin: 5px 0; border-radius: 4px; border-left: 3px solid #2196F3;">
+                <p><strong>ID BD:</strong> {{ item._id }}</p>
+                <p><strong>ID Prenda:</strong> {{ item.idPrenda }}</p>
+                <p><strong>Tipo:</strong> {{ item.tipo_prenda }}</p>
+                <p><strong>Talla:</strong> {{ item.talla }}</p>
+                <p><strong>Color:</strong> {{ item.color }}</p>
+                <p><strong>Marca:</strong> {{ item.marca }}</p>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="items.length === 0 && !loadingItems">No hay prendas registradas.</div>
+        </div>
+      </div>
+
+      <div *ngIf="errorMessage" style="background: #f44336; padding: 15px; border-radius: 4px; margin-top: 20px; color: white;">
+        {{ errorMessage }}
+      </div>
+    </div>
   `,
 })
 export default class IndexPage implements OnInit {
-  private http = inject(HttpClient);
-  // Reemplaza esta URL si expira el ID de crudcrud
-  private apiUrl = 'https://crudcrud.com/api/fa2b0ab0fca04a578690571af5e8d0ab/prendas';
+  private crudService = inject(CrudService);
+  private fb = inject(FormBuilder);
 
-  prendas: Prenda[] = [];
+  // Forms
+  createForm: FormGroup;
+  updateForm: FormGroup;
+  deleteForm: FormGroup;
+
+  // Data
+  items: Item[] = [];
   
-  // Objeto inicializador para los campos
-  nuevaPrenda: Prenda = {
-    idPrenda: '',
-    marca: '',
-    tipo: '',
-    talla: '',
-    color: ''
-  };
+  // Response states
+  createdItem: Item | null = null;
+  updatedItem: Item | null = null;
+  deletedId: string | null = null;
+  errorMessage: string = '';
+  loadingItems: boolean = false;
+
+  constructor() {
+    this.createForm = this.fb.group({
+      idPrenda: ['', Validators.required],
+      tipo_prenda: ['', Validators.required],
+      talla: ['', Validators.required],
+      color: ['', Validators.required],
+      marca: ['', Validators.required],
+    });
+
+    this.updateForm = this.fb.group({
+      id: ['', Validators.required],
+      idPrenda: ['', Validators.required],
+      tipo_prenda: ['', Validators.required],
+      talla: ['', Validators.required],
+      color: ['', Validators.required],
+      marca: ['', Validators.required],
+    });
+
+    this.deleteForm = this.fb.group({
+      id: ['', Validators.required],
+    });
+  }
 
   ngOnInit() {
-    this.obtenerPrendas();
+    this.onGetItems();
   }
 
-  // MÉTODO GET: Para leer lo que hay en la API
-  obtenerPrendas() {
-    this.http.get<Prenda[]>(this.apiUrl).subscribe(res => {
-      this.prendas = res;
-    });
-  }
-
-  // MÉTODO POST: Para enviar los datos
-  crearPrenda() {
-    // Validación simple: no enviar si los campos están vacíos
-    if (!this.nuevaPrenda.idPrenda || !this.nuevaPrenda.marca) {
-      alert('Por favor rellena al menos el ID y la Marca');
-      return;
-    }
-
-    this.http.post(this.apiUrl, this.nuevaPrenda).subscribe({
-      next: () => {
-        alert('Prenda guardada con éxito');
-        // Limpiamos el formulario
-        this.nuevaPrenda = { idPrenda: '', marca: '', tipo: '', talla: '', color: '' };
-        // Actualizamos la lista para ver el nuevo registro
-        this.obtenerPrendas();
+  // GET: Load all items
+  onGetItems() {
+    this.loadingItems = true;
+    this.crudService.getItems().subscribe({
+      next: (data) => {
+        this.items = data;
+        this.errorMessage = '';
+        this.loadingItems = false;
       },
-      error: (err) => console.error('Error al guardar:', err)
+      error: (err) => {
+        this.errorMessage = 'Error loading items: ' + err.message;
+        this.loadingItems = false;
+      },
     });
+  }
+
+  // POST: Create new item
+  onCreateItem() {
+    if (this.createForm.valid) {
+      const newItem: Item = this.createForm.value;
+      this.crudService.createItem(newItem).subscribe({
+        next: (data) => {
+          this.createdItem = data;
+          this.createForm.reset();
+          this.errorMessage = '';
+          this.onGetItems();
+        },
+        error: (err) => {
+          this.errorMessage = 'Error creating item: ' + err.message;
+        },
+      });
+    }
+  }
+
+  // PUT: Update existing item
+  onUpdateItem() {
+    if (this.updateForm.valid) {
+      const id = this.updateForm.get('id')?.value;
+      const item: Item = {
+        idPrenda: this.updateForm.get('idPrenda')?.value,
+        tipo_prenda: this.updateForm.get('tipo_prenda')?.value,
+        talla: this.updateForm.get('talla')?.value,
+        color: this.updateForm.get('color')?.value,
+        marca: this.updateForm.get('marca')?.value,
+      };
+      this.crudService.updateItem(id, item).subscribe({
+        next: (data) => {
+          this.updatedItem = data;
+          this.updateForm.reset();
+          this.errorMessage = '';
+          this.onGetItems();
+        },
+        error: (err) => {
+          this.errorMessage = 'Error updating item: ' + err.message;
+        },
+      });
+    }
+  }
+
+  // DELETE: Remove item
+  onDeleteItem() {
+    if (this.deleteForm.valid) {
+      const id = this.deleteForm.get('id')?.value;
+      this.crudService.deleteItem(id).subscribe({
+        next: () => {
+          this.deletedId = id;
+          this.deleteForm.reset();
+          this.errorMessage = '';
+          this.onGetItems();
+        },
+        error: (err) => {
+          this.errorMessage = 'Error deleting item: ' + err.message;
+        },
+      });
+    }
   }
 }

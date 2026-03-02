@@ -4,15 +4,18 @@ import { Observable } from 'rxjs';
 
 export interface Item {
   _id?: string;
-  name: string;
-  description: string;
+  idPrenda: string;
+  tipo_prenda: string;
+  talla: string;
+  color: string;
+  marca: string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class CrudService {
-  private apiUrl = 'https://crudcrud.com/api/YOUR_UNIQUE_ID/items';
+  private apiUrl = 'https://crudcrud.com/api/b1998c367c214e8a8c6ec1a348ee5429/items';
 
   constructor(private http: HttpClient) {}
 
