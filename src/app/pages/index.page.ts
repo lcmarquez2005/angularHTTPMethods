@@ -11,72 +11,67 @@ import { CrudService, Item } from '../services/crud.service';
   providers: [CrudService],
   template: `
     <div class="container">
-      <h1>CRUD Operations with crudcrud.com</h1>
+      <h1>Closet de Rodrigo</h1>
       
       <div class="operations">
         <!-- GET Items -->
         <div class="section">
-          <h2>GET - Fetch All Items</h2>
+          <h2>GET - Ver Prendas</h2>
           <button (click)="onGetItems()" class="btn btn-primary">
-            Get Items
+            Cargar Prendas
           </button>
           <div *ngIf="items.length > 0" class="items-list">
-            <h3>Items:</h3>
+            <h3>Prendas Disponibles:</h3>
             <div *ngFor="let item of items" class="item">
               <p><strong>ID:</strong> {{ item._id }}</p>
-              <p><strong>Name:</strong> {{ item.name }}</p>
-              <p><strong>Description:</strong> {{ item.description }}</p>
+              <p><strong>ID Prenda:</strong> {{ item.idPrenda }}</p>
+              <p><strong>Tipo:</strong> {{ item.tipo_prenda }}</p>
+              <p><strong>Talla:</strong> {{ item.talla }}</p>
+              <p><strong>Color:</strong> {{ item.color }}</p>
+              <p><strong>Marca:</strong> {{ item.marca }}</p>
             </div>
           </div>
         </div>
 
-        <!-- POST Create Item -->
-        <div class="section">
-          <h2>POST - Create Item</h2>
-          <form [formGroup]="createForm">
-            <input 
-              type="text" 
-              formControlName="name" 
-              placeholder="Item name"
-              class="input-field"
-            />
-            <input 
-              type="text" 
-              formControlName="description" 
-              placeholder="Description"
-              class="input-field"
-            />
-            <button 
-              (click)="onCreateItem()" 
-              [disabled]="createForm.invalid"
-              class="btn btn-success"
-            >
-              Create Item
-            </button>
-          </form>
-          <p *ngIf="createdItem" class="success-message">✓ Created: {{ createdItem.name }}</p>
-        </div>
 
         <!-- PUT Update Item -->
         <div class="section">
-          <h2>PUT - Update Item</h2>
+          <h2>PUT - Actualizar Prenda</h2>
           <form [formGroup]="updateForm">
             <input 
               type="text" 
               formControlName="id" 
-              placeholder="Item ID"
+              placeholder="ID de la Prenda a Actualizar"
               class="input-field"
             />
             <input 
               type="text" 
-              formControlName="name" 
-              placeholder="New name"
+              formControlName="idPrenda" 
+              placeholder="ID Prenda"
               class="input-field"
             />
             <input 
               type="text" 
-              formControlName="description" 
-              placeholder="New description"
+              formControlName="tipo_prenda" 
+              placeholder="Tipo de Prenda"
+              class="input-field"
+            />
+            <input 
+              type="text" 
+              formControlName="talla" 
+              placeholder="Talla"
+              class="input-field"
+            />
+            <input 
+              type="text" 
+              formControlName="color" 
+              placeholder="Color"
+              class="input-field"
+            />
+            <input 
+              type="text" 
+              formControlName="marca" 
+              placeholder="Marca"
               class="input-field"
             />
             <button 
@@ -84,32 +79,12 @@ import { CrudService, Item } from '../services/crud.service';
               [disabled]="updateForm.invalid"
               class="btn btn-warning"
             >
-              Update Item
+              Actualizar
             </button>
           </form>
-          <p *ngIf="updatedItem" class="success-message">✓ Updated: {{ updatedItem.name }}</p>
+          <p *ngIf="updatedItem" class="success-message">✓ Actualizada: {{ updatedItem.tipo_prenda }}</p>
         </div>
 
-        <!-- DELETE Item -->
-        <div class="section">
-          <h2>DELETE - Remove Item</h2>
-          <form [formGroup]="deleteForm">
-            <input 
-              type="text" 
-              formControlName="id" 
-              placeholder="Item ID to delete"
-              class="input-field"
-            />
-            <button 
-              (click)="onDeleteItem()" 
-              [disabled]="deleteForm.invalid"
-              class="btn btn-danger"
-            >
-              Delete Item
-            </button>
-          </form>
-          <p *ngIf="deletedId" class="success-message">✓ Deleted item with ID: {{ deletedId }}</p>
-        </div>
       </div>
 
       <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
@@ -267,14 +242,20 @@ export default class Home implements OnInit {
 
   constructor(private crudService: CrudService, private fb: FormBuilder) {
     this.createForm = this.fb.group({
-      name: ['', Validators.required],
-      description: ['', Validators.required],
+      idPrenda: ['', Validators.required],
+      tipo_prenda: ['', Validators.required],
+      talla: ['', Validators.required],
+      color: ['', Validators.required],
+      marca: ['', Validators.required],
     });
 
     this.updateForm = this.fb.group({
       id: ['', Validators.required],
-      name: ['', Validators.required],
-      description: ['', Validators.required],
+      idPrenda: ['', Validators.required],
+      tipo_prenda: ['', Validators.required],
+      talla: ['', Validators.required],
+      color: ['', Validators.required],
+      marca: ['', Validators.required],
     });
 
     this.deleteForm = this.fb.group({
@@ -316,8 +297,11 @@ export default class Home implements OnInit {
     if (this.updateForm.valid) {
       const id = this.updateForm.get('id')?.value;
       const item: Item = {
-        name: this.updateForm.get('name')?.value,
-        description: this.updateForm.get('description')?.value,
+        idPrenda: this.updateForm.get('idPrenda')?.value,
+        tipo_prenda: this.updateForm.get('tipo_prenda')?.value,
+        talla: this.updateForm.get('talla')?.value,
+        color: this.updateForm.get('color')?.value,
+        marca: this.updateForm.get('marca')?.value,
       };
       this.crudService.updateItem(id, item).subscribe({
         next: (data) => {
